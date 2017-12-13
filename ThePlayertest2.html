@@ -1,0 +1,894 @@
+<doctype html><html>
+<head>
+</head> 
+<body onload="activate()" onkeydown="handlekKey(event)">
+<div>
+<canvas id="Player"
+height="300px" width="1000px">
+</canvas>
+</div>
+<div id="editorDiv">
+<canvas id="editor" height="500px" width="1000px"
+style="border:1px solid #000000;" >
+</canvas>
+</div>
+<form action="" oninput="init()"  style="display:none;">
+Set the x;
+<input type="range" id="a" name="b" value="50">
+Set the y;
+<input type="range" id="b" name="b" value="50">
+</form>
+<img id="scream" src="brothers.png" alt="The Scream" style="display:none;">
+<img id="one" src="brothers.png" alt="The Scream"  style="display:none;">
+<img id="two" src="brothers.png" alt="The Scream" style="display:none;">
+<img id="three" src="brothers.png" alt="The Scream" style="display:none;">
+<img id="arrow" src="arrow.png" alt="The Scream" style="display:none;">
+
+<img id="arrowLeft" src="arrowLeft.png" alt="The Scream" style="display:none;">
+
+<img id="arrowRight" src="arrowRight.png" alt="The Scream" style="display:none;">
+
+<img id="arrowDown" src="arrowDown.png" alt="The Scream" style="display:none;">
+<script>
+var numx=0;
+var numy=0;
+var position=0;
+var formx=0;var formy=0
+var isStartingAWall=true;
+var upto=0;
+var oldx=0;
+var oldy=0;
+var placing=0;
+var wall=[];
+var wInterval=0;
+var hInterval=0;
+var column=[];
+var imgColumn=[];
+var personx=0;
+var persony=0;
+var personPosition=0;
+function legal(x,y){
+return !(x<0||x>=numx||y<0||y>=numy)
+}
+function activate(){
+var element=(document.createElement("script"));
+element.src=location.search.substring(1);
+element.onload=function(){reverseString();};
+document.getElementsByTagName("head")[0].appendChild(element);
+
+}
+function reverseString(){
+
+var ss=reverseThis;
+var s=ss.split(",");
+position=Number(s[0]);formx=Number(s[1]);formy=Number(s[2]);isStartingAWall=s[3];upto=Number(s[4]);oldx=Number(s[5]);oldy=Number(s[6]);placing=Number(s[7]);wInterval=Number(s[8]);hInterval=Number(s[9]);personx=Number(s[10]);persony=Number(s[11]);
+numx=Number(s[12]);numy=Number(s[13]);
+isStartingAWall=true;
+document.getElementById("a").value=numx;
+document.getElementById("b").value=numy;
+init();
+var at=15;
+for(var i=0;i<Number(s[14]);i+=1){
+wall[i]=s[at];
+var sss=wall[i].split("!");
+var c=document.getElementById("editor");
+if(sss[0]=="x"){
+placing=1;
+Click(c,Number(sss[1]),Number(sss[3]),true);
+Click(c,Number(sss[2]),Number(sss[3]),true);
+}else{
+placing=1;
+Click(c,Number(sss[3]),Number(sss[1]),true);
+Click(c,Number(sss[3]),Number(sss[2]),true);
+}
+at+=1;
+}
+while(s[at]!="end"){
+xy=s[at].split(":");
+colandimg=xy[2].split("+");
+column[Number(xy[0])][Number(xy[1])]=colandimg[0];
+imgColumn[Number(xy[0])][Number(xy[1])]=colandimg[1];
+if(column[Number(xy[0])][Number(xy[1])]==-1){
+var c=document.getElementById("editor");
+placing=0;
+Click(c,Number(xy[0]),Number(xy[1]),true);
+}
+at+=1;
+}
+}
+function handlekKey(event){
+var x = event.which || event.keyCode;
+if(x==65){
+personPosition-=1;
+if(personPosition<0){personPosition+=4;}
+drawPlayer();
+return;
+}
+if(x==68){
+personPosition+=1;
+if(personPosition>3){personPosition-=4;}
+drawPlayer();
+return;
+}
+if(x==87){
+if(personPosition==0){if(legal(personx,persony-1)&&(column[personx])[persony-1]==-2){
+var ctx=document.getElementById("editor").getContext("2d");
+reBlue(ctx,personx,persony);
+persony-=1;
+drawPlayer();}}
+if(personPosition==1){if(legal(personx+1,persony)&&(column[personx+1])[persony]==-2){
+var ctx=document.getElementById("editor").getContext("2d");
+reBlue(ctx,personx,persony);
+personx+=1;
+drawPlayer();}}
+if(personPosition==2){if(legal(personx,persony+1)&&(column[personx])[persony+1]==-2){
+var ctx=document.getElementById("editor").getContext("2d");
+reBlue(ctx,personx,persony);
+persony+=1;
+drawPlayer();}}
+if(personPosition==3){if(legal(personx-1,persony)&&(column[personx-1])[persony]==-2){
+var ctx=document.getElementById("editor").getContext("2d");
+reBlue(ctx,personx,persony);
+personx-=1;
+drawPlayer();}}
+return;
+}
+if(x==83){
+if(personPosition==0){if(legal(personx,persony+1)&&(column[personx])[persony+1]==-2){
+var ctx=document.getElementById("editor").getContext("2d");
+reBlue(ctx,personx,persony);
+persony+=1;
+drawPlayer();}}
+if(personPosition==1){if(legal(personx-1,persony)&&(column[personx-1])[persony]==-2){
+var ctx=document.getElementById("editor").getContext("2d");
+reBlue(ctx,personx,persony);
+personx-=1;
+drawPlayer();}}
+if(personPosition==2){if(legal(personx,persony-1)&&(column[personx])[persony-1]==-2){
+var ctx=document.getElementById("editor").getContext("2d");
+reBlue(ctx,personx,persony);
+persony-=1;
+drawPlayer();}}
+if(personPosition==3){if(legal(personx+1,persony)&&(column[personx+1])[persony]==-2){
+var ctx=document.getElementById("editor").getContext("2d");
+reBlue(ctx,personx,persony);
+personx+=1;
+drawPlayer();}}
+}
+}
+function Click(c,xx,yy,loading){
+var ctx = c.getContext("2d");
+   if(placing==0){
+     ctx.fillStyle = "#FF0000";
+     if(!loading){var row=column[xx];
+     row[yy]=-1;}
+     ctx.fillRect(xx*wInterval,yy*hInterval,wInterval,hInterval);
+   }
+   else if(placing==1){
+     ctx.fillStyle = "#00FF00";
+     if(isStartingAWall){
+       isStartingAWall=false;
+       if(!loading){var row=column[(oldx=xx)];
+       row[(yy)]=upto;}else{oldx=xx;}
+	oldy=yy;
+       ctx.fillRect(xx*wInterval,yy*hInterval,wInterval,hInterval);
+     }else{
+       var newx=xx;
+       isStartingAWall=true;
+       if(oldx!=newx){
+       for(var i=Math.min(oldx,newx);i<=Math.max(oldx,newx);i+=1)
+      {
+        ctx.fillRect(i*wInterval,oldy*hInterval,wInterval,hInterval);
+        if(!loading){var row=column[i];
+        row[oldy]=upto;}
+      }
+     if(!loading){wall[upto]="x!"+Math.min(oldx,newx)+"!"+Math.max(oldx,newx)+"!"+oldy;
+     upto+=1;}
+   }else{
+     var newy=yy;
+     if(oldy!=newy)
+     {
+       for(var i=Math.min(oldy,newy);i<=Math.max(oldy,newy);i+=1)
+     {
+     ctx.fillRect(oldx*wInterval,i*hInterval,wInterval,hInterval);
+     if(!loading){var row=column[oldx];
+     row[i]=upto;}
+   }
+   if(!loading){wall[upto]="y!"+Math.min(oldy,newy)+"!"+Math.max   (oldy,newy)+"!"+oldx;
+   upto+=1;}
+ }  
+}}}
+if(placing==2){
+  var number=(column[xx])[yy];
+  if(number==-2){return;}
+  if(number==-1){
+   formx=xx;formy=yy;
+   var s=(imgColumn[xx])[yy].split("!");
+   for(var i=0;i<4;i+=1){
+   var t=s[i].split("##");
+   document.getElementById(t[0]).value=t[1];
+   }
+   }
+   else
+   {
+  var par=wall[number];
+  par=par.split("!");
+  if(par[0]=="x"){
+  var s=((imgColumn[par[1]])[par[3]]).split("!"); 
+  for(var i=0;i<4;i+=1){
+   var t=s[i].split("##");
+   document.getElementById(t[0]).value=t[1];
+   }
+   formx=par[1];formy=par[3];
+   }else{
+   var s=((imgColumn[par[3]])[par[1]]).split("!"); 
+   for(var i=0;i<4;i+=1){
+    var t=s[i].split("##");
+    document.getElementById(t[0]).value=t[1];
+    }
+   formx=par[3];formy=par[1];  
+  }
+  }
+ }if(placing==3){
+var number=(column[xx])[yy];
+if(number==-2){return;}
+if(number==-1){
+(imgColumn[xx])[yy]="west##none!east##none!north##none!south##none";
+  (column[xx])[yy]=-2;
+  reBlue(ctx,xx,yy);
+  }else{
+  var part=wall[number];
+  part=part.split("!");
+  if(part[0]==("x")){
+  var min=Number(part[1]);
+  var max=Number(part[2]);
+  var they=Number(part[3]);
+  ((imgColumn[min])[they])="west##none!east##none!north##none!south##none"; 
+  for(var ii=min;ii<=max;ii+=1){
+   reBlue(ctx,ii,they);
+   (column[ii])[they]=-2;
+   }
+   }else{var min=Number(part[1]);
+  var max=Number(part[2]);
+  var thex=Number(part[3]);
+  ((imgColumn[thex])[min])="west##none!east##none!north##none!south##none"; 
+  for(var ii=min;ii<=max;ii+=1){
+   reBlue(ctx,thex,ii);
+   (column[thex])[ii]=-2;
+   }
+ } 
+}
+}
+ctx.fillStyle = "#FFFFFF";
+ctx.stroke();
+}
+function handleClick(event){
+   var c = document.getElementById("editor"); 
+   var cc = document.getElementById("editorDiv"); 
+   var cY = (cc.offsetTop);
+   var cX = (cc.offsetLeft);
+   var x = (event.pageX-cX);
+   var y = (event.pageY-cY);
+   var xx=Math.floor((x-(x%wInterval))/wInterval);
+   var yy=Math.floor((y-(y%hInterval))/hInterval);
+   if(!legal(xx,yy))return;
+   Click(c,xx,yy,false);
+   }
+
+function reBlue(ctx,xx,yy){
+var x=xx*wInterval;
+var y=yy*hInterval;
+ctx.fillStyle = "#0000FF";
+ctx.fillRect(x,y,wInterval,hInterval);
+ctx.fillStyle = "#FFFFFF";
+ctx.stroke();
+}
+function enterImages(){
+var north=document.getElementById("north").value;
+var east=document.getElementById("east").value;
+var west=document.getElementById("west").value;
+var south=document.getElementById("south").value;
+(imgColumn[formx])[formy]="north##"+north+"!east##"+east+"!west##"+west+"!south##"+south;
+}
+
+function drawPlayer(){
+var isFront=false;
+var frontDivide=1;
+var frontInto=0;
+var isRight=false;
+var rightDivide=1;
+var rightInto=0;
+var isLeft=false;
+var leftDivide=1;
+var leftInto=0;
+var img = document.getElementById("scream");
+var playerImg;
+var front=document.getElementById("one");
+var left=document.getElementById("two");
+var right=document.getElementById("three");
+if(personPosition==0){playerImg=document.getElementById("arrow");
+	var number=0;
+if(legal(personx,persony-1)&&(number=(column[personx])[persony-1])!=-2){
+	if(number==-1){
+		var s=imgColumn[personx][persony-1].split("!");
+		for(var i=0;i<4;i+=1){
+			var y=s[i].split("##");
+			if(y[0]=="south"){
+                                if(y[1]=="none"){break;}
+				front.src=y[1];
+				isFront=true;
+				break;
+			}
+		}
+	}else{
+		var ss=wall[number].split("!");
+		if(ss[0]=="x"){
+			var s=imgColumn[ss[1]][ss[3]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="south"){
+                                        if(y[1]=="none"){break;}
+					front.src=y[1];
+					isFront=true;
+					frontDivide=(Number(ss[2])+1)-Number(ss[1]);
+					frontInto=personx-ss[1];
+					break;
+				}
+			}
+		}else{
+			var s=imgColumn[ss[3]][ss[1]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="south"){
+                                        if(y[1]=="none"){break;}
+					front.src=y[1];
+					isFront=true;
+					break;
+				}
+			}
+		}
+	}
+}
+
+
+if(legal(personx+1,persony)&&(number=(column[personx+1])[persony])!=-2){
+	if(number==-1){
+		var s=imgColumn[personx+1][persony].split("!");
+		for(var i=0;i<4;i+=1){
+			var y=s[i].split("##");
+			if(y[0]=="west"){
+                                if(y[1]=="none"){break;}
+				right.src=y[1];
+				isRight=true;
+				break;
+			}
+		}
+	}else{
+		var ss=wall[number].split("!");
+		if(ss[0]=="y"){
+			var s=imgColumn[ss[3]][ss[1]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="west"){
+                                        if(y[1]=="none"){break;}
+					right.src=y[1];
+					isRight=true;
+					rightDivide=(Number(ss[2])+1)-Number(ss[1]);
+					rightInto=persony-ss[1];
+					break;
+				}
+			}
+		}else{
+			var s=imgColumn[ss[1]][ss[3]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="west"){
+                                        if(y[1]=="none"){break;}
+					right.src=y[1];
+					isRight=true;
+					break;
+				}
+			}
+		}
+	}
+}
+
+
+if(legal(personx-1,persony)&&(number=(column[personx-1])[persony])!=-2){
+	if(number==-1){
+		var s=imgColumn[personx-1][persony].split("!");
+		for(var i=0;i<4;i+=1){
+			var y=s[i].split("##");
+			if(y[0]=="east"){	
+                                if(y[1]=="none"){break;}
+				left.src=y[1];
+				isLeft=true;
+				break;
+			}
+		}
+	}else{
+		var ss=wall[number].split("!");
+		if(ss[0]=="y"){
+			var s=imgColumn[ss[3]][ss[1]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="east"){
+		
+                                        if(y[1]=="none"){break;}
+					left.src=y[1];
+					isLeft=true;
+					leftDivide=(Number(ss[2])+1)-Number(ss[1]);
+					leftInto=persony-ss[1];
+					break;
+				}
+			}
+		}else{
+			var s=imgColumn[ss[1]][ss[3]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="east"){
+		
+                                        if(y[1]=="none"){break;}
+					left.src=y[1];
+					isLeft=true;
+					break;
+				}
+			}
+		}
+	}
+}
+}
+
+
+
+if(personPosition==1){playerImg=document.getElementById("arrowRight");
+	var number=0;
+if(legal(personx,persony+1)&&(number=(column[personx])[persony+1])!=-2&&number!=undefined){
+	if(number==-1){
+		var s=imgColumn[personx][persony+1].split("!");
+		for(var i=0;i<4;i+=1){
+			var y=s[i].split("##");
+			if(y[0]=="north"){
+		
+                                if(y[1]=="none"){break;}
+				right.src=y[1];
+				isRight=true;
+				break;
+			}
+		}
+	}else{
+		var ss=wall[number].split("!");
+		if(ss[0]=="x"){
+			var s=imgColumn[ss[1]][ss[3]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="north"){
+		
+                                        if(y[1]=="none"){break;}
+					right.src=y[1];
+					isRight=true;
+					rightDivide=(Number(ss[2])+1)-Number(ss[1]);
+					rightInto=personx-ss[1];
+					break;
+				}
+			}
+		}else{
+			var s=imgColumn[ss[3]][ss[1]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="north"){
+		
+                                        if(y[1]=="none"){break;}
+					right.src=y[1];
+					isRight=true;
+					break;
+				}
+			}
+		}
+	}
+}
+
+
+if(legal(personx+1,persony)&&(number=(column[personx+1])[persony])!=-2){
+	if(number==-1){
+		var s=imgColumn[personx+1][persony].split("!");
+		for(var i=0;i<4;i+=1){
+			var y=s[i].split("##");
+			if(y[0]=="west"){
+		
+                                if(y[1]=="none"){break;}
+				front.src=y[1];
+				isFront=true;
+				break;
+			}
+		}
+	}else{
+		var ss=wall[number].split("!");
+		if(ss[0]=="y"){
+			var s=imgColumn[ss[3]][ss[1]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="west"){
+		
+                                        if(y[1]=="none"){break;}
+					front.src=y[1];
+					isFront=true;
+					frontDivide=(Number(ss[2])+1)-Number(ss[1]);
+					frontInto=persony-ss[1];
+					break;
+				}
+			}
+		}else{
+			var s=imgColumn[ss[1]][ss[3]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="west"){
+		
+                                        if(y[1]=="none"){break;}
+					front.src=y[1];
+					isFront=true;
+					break;
+				}
+			}
+		}
+	}
+}
+if(legal(personx,persony-1)&&(number=(column[personx])[persony-1])!=-2){
+	if(number==-1){
+		var s=imgColumn[personx][persony-1].split("!");
+		for(var i=0;i<4;i+=1){
+			var y=s[i].split("##");
+			if(y[0]=="south"){
+                                        if(y[1]=="none"){break;}
+				left.src=y[1];
+				isLeft=true;
+				break;
+			}
+		}
+	}else{
+		var ss=wall[number].split("!");
+		if(ss[0]=="x"){
+			var s=imgColumn[ss[1]][ss[3]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="south"){
+                                        if(y[1]=="none"){break;}
+					left.src=y[1];
+					isLeft=true;
+					leftDivide=(Number(ss[2])+1)-Number(ss[1]);
+					leftInto=personx-ss[1];
+					break;
+				}
+			}
+		}else{
+			var s=imgColumn[ss[3]][ss[1]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="south"){
+                                        if(y[1]=="none"){break;}
+					left.src=y[1];
+					isLeft=true;
+					break;
+				}
+			}
+		}
+	}
+}
+}
+
+if(personPosition==2){playerImg=document.getElementById("arrowDown");
+	var number=0;
+if(legal(personx,persony+1)&&(number=(column[personx])[persony+1])!=-2){
+	if(number==-1){
+		var s=imgColumn[personx][persony+1].split("!");
+		for(var i=0;i<4;i+=1){
+			var y=s[i].split("##");
+			if(y[0]=="north"){
+                                        if(y[1]=="none"){break;}
+				front.src=y[1];
+				isFront=true;
+				break;
+			}
+		}
+	}else{
+		var ss=wall[number].split("!");
+		if(ss[0]=="x"){
+			var s=imgColumn[ss[1]][ss[3]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="north"){
+                                        if(y[1]=="none"){break;}
+					front.src=y[1];
+					isFront=true;
+					frontDivide=(Number(ss[2])+1)-Number(ss[1]);
+					frontInto=personx-ss[1];
+					break;
+				}
+			}
+		}else{
+			var s=imgColumn[ss[3]][ss[1]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="north"){
+                                        if(y[1]=="none"){break;}
+					front.src=y[1];
+					isFront=true;
+					break;
+				}
+			}
+		}
+	}
+}
+
+
+if(legal(personx+1,persony)&&(number=(column[personx+1])[persony])!=-2){
+	if(number==-1){
+		var s=imgColumn[personx+1][persony].split("!");
+		for(var i=0;i<4;i+=1){
+			var y=s[i].split("##");
+			if(y[0]=="west"){
+                                        if(y[1]=="none"){break;}
+				left.src=y[1];
+				isLeft=true;
+				break;
+			}
+		}
+	}else{
+		var ss=wall[number].split("!");
+		if(ss[0]=="y"){
+			var s=imgColumn[ss[3]][ss[1]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="west"){
+                                        if(y[1]=="none"){break;}
+					left.src=y[1];
+					isLeft=true;
+					leftDivide=(Number(ss[2])+1)-Number(ss[1]);
+					leftInto=persony-ss[1];
+					break;
+				}
+			}
+		}else{
+			var s=imgColumn[ss[1]][ss[3]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="west"){
+                                        if(y[1]=="none"){break;}
+					left.src=y[1];
+					isLeft=true;
+					break;
+				}
+			}
+		}
+	}
+}
+
+
+if(legal(personx-1,persony)&&(number=(column[personx-1])[persony])!=-2){
+	if(number==-1){
+		var s=imgColumn[personx-1][persony].split("!");
+		for(var i=0;i<4;i+=1){
+			var y=s[i].split("##");
+			if(y[0]=="east"){
+                                        if(y[1]=="none"){break;}
+				right.src=y[1];
+				isRight=true;
+				break;
+			}
+		}
+	}else{
+		var ss=wall[number].split("!");
+		if(ss[0]=="y"){
+			var s=imgColumn[ss[3]][ss[1]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="east"){
+                                        if(y[1]=="none"){break;}
+					right.src=y[1];
+					isRight=true;
+					rightDivide=(Number(ss[2])+1)-Number(ss[1]);
+					rightInto=persony-ss[1];
+					break;
+				}
+			}
+		}else{
+			var s=imgColumn[ss[1]][ss[3]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="east"){
+                                        if(y[1]=="none"){break;}
+					right.src=y[1];
+					isRight=true;
+					break;
+				}
+			}
+		}
+	}
+}
+}
+
+if(personPosition==3){playerImg=document.getElementById("arrowLeft");
+	var number=0;
+if(legal(personx,persony-1)&&(number=(column[personx])[persony-1])!=-2){
+	if(number==-1){
+		var s=imgColumn[personx][persony-1].split("!");
+		for(var i=0;i<4;i+=1){
+			var y=s[i].split("##");
+			if(y[0]=="south"){
+                                        if(y[1]=="none"){break;}
+				right.src=y[1];
+				isRight=true;
+				break;
+			}
+		}
+	}else{
+		var ss=wall[number].split("!");
+		if(ss[0]=="x"){
+			var s=imgColumn[ss[1]][ss[3]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="south"){
+                                        if(y[1]=="none"){break;}
+					right.src=y[1];
+					isRight=true;
+					rightDivide=(Number(ss[2])+1)-Number(ss[1]);
+					rightInto=personx-ss[1];
+					break;
+				}
+			}
+		}else{
+			var s=imgColumn[ss[3]][ss[1]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="south"){
+                                        if(y[1]=="none"){break;}
+					right.src=y[1];
+					isRight=true;
+					break;
+				}
+			}
+		}
+	}
+}
+
+
+if(legal(personx-1,persony)&&(number=(column[personx-1])[persony])!=-2){
+	if(number==-1){
+		var s=imgColumn[personx-1][persony].split("!");
+		for(var i=0;i<4;i+=1){
+			var y=s[i].split("##");
+			if(y[0]=="east"){
+                                        if(y[1]=="none"){break;}
+				front.src=y[1];
+				isFront=true;
+				break;
+			}
+		}
+	}else{
+		var ss=wall[number].split("!");
+		if(ss[0]=="y"){
+			var s=imgColumn[ss[3]][ss[1]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="east"){
+                                        if(y[1]=="none"){break;}
+					front.src=y[1];
+					isFront=true;
+					frontDivide=(Number(ss[2])+1)-Number(ss[1]);
+					frontInto=persony-ss[1];
+					break;
+				}
+			}
+		}else{
+			var s=imgColumn[ss[1]][ss[3]].split("!");
+			for(var i=0;i<4;i+=1){
+                                        if(y[1]=="none"){break;}
+				var y=s[i].split("##");
+				if(y[0]=="east"){
+					front.src=y[1];
+					isFront=true;
+					break;
+				}
+			}
+		}
+	}
+}
+
+if(legal(personx,persony+1)&&(number=(column[personx])[persony+1])!=-2){
+	if(number==-1){
+		var s=imgColumn[personx][persony+1].split("!");
+		for(var i=0;i<4;i+=1){
+			var y=s[i].split("##");
+			if(y[0]=="north"){
+                                        if(y[1]=="none"){break;}
+				left.src=y[1];
+				isLeft=true;
+				break;
+			}
+		}
+	}else{
+		var ss=wall[number].split("!");
+		if(ss[0]=="x"){
+			var s=imgColumn[ss[1]][ss[3]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="north"){
+                                        if(y[1]=="none"){break;}
+					left.src=y[1];
+					isLeft=true;
+					leftDivide=(Number(ss[2])+1)-Number(ss[1]);
+					leftInto=personx-ss[1];
+					break;
+				}
+			}
+		}else{
+			var s=imgColumn[ss[3]][ss[1]].split("!");
+			for(var i=0;i<4;i+=1){
+				var y=s[i].split("##");
+				if(y[0]=="north"){
+                                        if(y[1]=="none"){break;}
+					left.src=y[1];
+					isLeft=true;
+					break;
+				}
+			}
+		}
+	}
+}
+}
+
+
+var c = document.getElementById("Player");
+var percent=c.width/100.0;
+  var ctx = c.getContext("2d");
+  ctx.fillStyle = "#FFFF00";
+  ctx.fillRect(0,0,c.width,c.height);
+if(isLeft){  ctx.drawImage(left,(left.width/leftDivide)*leftInto,0,(left.width/leftDivide),left.height,0,0,33*percent,c.height);}
+if(isFront){  ctx.drawImage(front,(front.width/frontDivide)*frontInto,0,(front.width/frontDivide),front.height,33*percent,0,33*percent,c.height);}
+if(isRight){ctx.drawImage(right,(right.width/rightDivide)*rightInto,0,(right.width/rightDivide),right.height,66*percent,0,33*percent,c.height);}
+var ec=	document.getElementById("editor");
+var ectx = ec.getContext("2d");
+ectx.drawImage(playerImg,personx*wInterval,persony*hInterval,wInterval,hInterval);
+}
+
+function init(){
+var numColumns=Number(document.getElementById("a").value);
+var numRows=Number(document.getElementById("b").value);
+//setInterval(drawPlayer, 1000);
+numx=numColumns;numy=numRows;
+personx=Math.floor(numColumns/2);
+persony=numRows-1;
+
+for(var i=0;i<numColumns;i+=1){
+	var row= [];
+        var imgRow=[];
+        imgColumn[i]=imgRow;
+	column[i]=row;
+	for(var j=0;j<numRows;j+=1){
+        imgRow[j]="west##none!east##none!north##none!south##none";
+	row[j]=-2;
+	}
+    }
+  var c = document.getElementById("editor");
+  c.onmousedown='handleClick(event)';
+  wInterval=(1.0*c.width)/numColumns; 
+  hInterval=(1.0*c.height)/numRows;
+  var ctx = c.getContext("2d");
+  ctx.beginPath();
+  ctx.fillStyle = "#0000FF";
+  ctx.fillRect(0,0,c.width,c.height);
+  ctx.fillStyle ="#000000";    
+  for(var i=0;i<=numColumns;i+=1){
+	ctx.moveTo(i*wInterval,0);
+  	ctx.lineTo(i*wInterval,c.height);
+        ctx.stroke();
+	}
+	for(var i=0;i<=numRows;i+=1){
+	ctx.moveTo(0,i*hInterval);
+  	ctx.lineTo(c.width,i*hInterval);
+        ctx.stroke();
+	}
+drawPlayer();
+}
+ </script>
+</html>
